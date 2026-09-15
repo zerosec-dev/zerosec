@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ZeroSec Solutions — The Zero Trust Overhead Trap</title>
-<meta name="description" content="Zero trust engineering and architecture consulting for defense programs, DIB suppliers, and air-gapped or classified environments.">
+<title>ZeroSec Solutions — Self-Hosted Zero Trust</title>
+<meta name="description" content="Zero trust architecture and engineering for defense programs, DIB suppliers, and air-gapped or classified environments.">
 <style>
   :root {
     --bg: #1c1c1c;
@@ -27,10 +27,12 @@
   main { max-width: 720px; margin: 0 auto; }
   h1 { font-size: 26px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; }
   h2 { font-size: 18px; font-weight: 600; margin: 30px 0 10px; }
+  h3 { font-size: 15px; font-weight: 600; margin: 18px 0 4px; }
   p { margin: 0 0 14px; color: var(--body); }
   ul { margin: 0 0 14px; padding-left: 20px; color: var(--body); }
   li { margin-bottom: 8px; }
-  li b { font-weight: 600; color: var(--text); }
+  li b, p b { font-weight: 600; color: var(--text); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
   a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
   a:visited { color: #9f8fd0; }
   a:hover { color: #a8c8ef; }
@@ -54,15 +56,16 @@
 
 <p class="meta">ZeroSec Solutions &middot; <a href="https://zerosecsolutions.com">zerosecsolutions.com</a></p>
 
-<h1>The Zero Trust Overhead Trap</h1>
+<h1>Self-Hosted Zero Trust</h1>
 <p class="date">14 Sep 2026</p>
 
-<p>Every program I work with is under orders to cut overhead. Buying a managed zero trust product is the fastest way to show that on a slide: the billets go away, the training line goes away, and the architecture becomes someone else's problem. The overhead that actually got cut was the understanding.</p>
-<p>You find out later, and always at a bad time. The appliance denies traffic mid-exercise and nobody on the floor can name the rule. An assessor asks where the policy decision point is and the honest answer is a support queue in another timezone. That isn't a lean organization, it's a dependent one, and dependency is a security property like any other.</p>
-<p>This page is what we do about that. We're engineers, not a licence.</p>
+<p>Programs cut overhead by buying a managed zero trust product. The billets go away. The training line goes away. The architecture moves to the vendor.</p>
+<p>Three months later the appliance denies traffic during an exercise, and nobody on the floor can name the rule that did it. An assessor asks where the policy decision point runs. The answer is a support queue in another timezone.</p>
+<p>That is not reduced overhead. That is transferred understanding, and it does not come back when the link drops. We build the architecture with your engineers and leave the understanding on your side of the boundary.</p>
 
-<h2>1. What the products don't ship</h2>
-<p>The vendors answered the air-gap objection: you can buy a disconnected appliance, an on-prem suite, an agent that works offline. Fine. None of that produces an architecture, and none of it survives the questions an assessor actually asks.</p>
+<h2>1. What the products ship, and what they don't</h2>
+<p>Vendors now ship disconnected appliances, on-prem suites, and offline-mode agents. Those solve transport. They do not produce an architecture, and they do not produce evidence.</p>
+<p>Test your current vendor. Ask for three artifacts: the written trust algorithm, the decision record for one denied request from last week, and the control mapping for CMMC Level 2. If any of the three cannot be produced, the gap is yours, not theirs.</p>
 <pre>+----------------------------+--------------------------+--------------------------+
 | What the vendor ships      | What it doesn't ship     | Where we come in         |
 +============================+==========================+==========================+
@@ -86,22 +89,37 @@
 +----------------------------+--------------------------+--------------------------+</pre>
 
 <h2>2. The architecture</h2>
-<p>NIST SP 800-207 with every component inside your boundary. Keycloak and FreeIPA for user identity, with CAC/PIV over mutual TLS and FIDO2 for step-up. osquery and FleetDM for device posture, treated as facts with a timestamp: a stale fact is a failed fact. SPIRE for workload identity, X.509 SVIDs on a one-hour TTL so there is no long-lived credential on disk. WireGuard, Headscale or Nebula for the encrypted overlay, deny by default, no flat L2.</p>
-<p>Envoy is the PEP, calling OPA over ext_authz on a unix socket before it forwards anything. OPA is the PE: the trust algorithm is Rego in git, unit tested in CI, signed before it ships to the enclave. Vault issues the PKI and dynamic credentials. Vector ships Envoy access logs and OPA decision logs into ClickHouse, which is where the visibility pillar is actually satisfied rather than claimed.</p>
-<p>Cut the uplink and the loop still closes. That is the test, and most of the market fails it.</p>
+<p>NIST SP 800-207 separates the decision from the enforcement. The policy engine (PE) decides. The policy administrator (PA) issues the session credential. The policy enforcement point (PEP) sits on the data path in front of the resource. Run all three inside your boundary.</p>
+
+<h3>Identity</h3>
+<p>Keycloak issues OIDC tokens. FreeIPA with 389-DS holds accounts, hosts, and groups; Keycloak federates to it over LDAP. Users authenticate with CAC/PIV over mutual TLS. FIDO2 covers contractors without a card and provides step-up. Set access token lifetime to 5–15 minutes. Caveat: group membership is not authorization. Keycloak answers who the subject is; policy decides what that subject may do now.</p>
+
+<h3>Device</h3>
+<p>osquery exposes the endpoint as a SQL database. FleetDM schedules the queries, typically every 300 s, and forwards results to the PE as timestamped facts. Treat a posture row older than two intervals as a failure. Caveat: agents stop reporting, and most deployments then fail open. Alarm on staleness, not only on non-compliance.</p>
+
+<h3>Workload and network</h3>
+<p>SPIRE attests each workload and mints an X.509 SVID with a 1 h TTL, so no long-lived credential sits on disk. WireGuard carries the traffic. Headscale coordinates keys when node churn makes hand-managed peers impractical; Nebula suits hub-and-spoke estates behind NAT. Set reachability to deny by default. Caveat: the overlay is not the authorization boundary. Mesh membership grants a path to a PEP and nothing else. If a leaked WireGuard key reaches a resource, the design has collapsed back to a VPN.</p>
+
+<h3>Policy</h3>
+<p>Envoy runs as a sidecar and as the edge gateway. It verifies the peer SVID, then calls OPA over ext_authz on a unix socket before forwarding. The trust algorithm is Rego in git. Run <code>opa test</code> in CI against recorded inputs. Sign the bundle before it ships to the enclave. Budget about 1.3 ms added to the call path, of which roughly 0.6 ms is policy evaluation; measure your own.</p>
+
+<h3>Telemetry</h3>
+<p>Vector ships Envoy access logs, OPA decision logs, and osquery results to ClickHouse. Sample the access log under load. Never sample the decision log: it is the evidence an assessor asks for.</p>
+
+<p><b>The test:</b> unplug the uplink, then authenticate a user and call a service. If either fails, the decision does not run inside your boundary.</p>
 
 <h2>3. How we work</h2>
 <ul>
-  <li><b>Assessment.</b> Your estate measured against SP 800-207 and the DoD seven pillars. Written findings, gaps ranked by risk, no product attached to the recommendation.</li>
-  <li><b>Architecture.</b> Target design and migration path: control plane and data plane separated, PEP and PDP placement, the trust algorithm written down in language your team can argue with.</li>
-  <li><b>Implementation.</b> Built with your engineers, air-gapped first and relaxed later if your environment allows it. You get the repos and the runbooks.</li>
-  <li><b>Accreditation support.</b> STIG baselines, control mappings, and decision logs that answer a CMMC Level 2 or DFARS 252.204-7012 assessor with evidence instead of narrative.</li>
-  <li><b>Enablement.</b> Pairing, runbooks, and tabletops until your people can explain the design and restore it without calling anyone.</li>
+  <li><b>Assessment.</b> We measure the estate against SP 800-207 and the seven DoD pillars and rank the gaps by risk. Output: a findings document with no product attached to the recommendation.</li>
+  <li><b>Architecture.</b> We separate control plane from data plane, place the PDP and PEPs, and write the trust algorithm down. Output: a target design and a migration path your team can argue with.</li>
+  <li><b>Implementation.</b> We build it with your engineers, air-gapped first, and relax it later if the environment allows. Output: the repos, the configs, and the runbooks.</li>
+  <li><b>Accreditation support.</b> We map controls to components and pull decision records from the log store. Output: STIG baselines and CMMC Level 2 / DFARS 252.204-7012 evidence.</li>
+  <li><b>Enablement.</b> We pair with your operators and run tabletops until they can explain the design and restore it unassisted.</li>
 </ul>
-<p>We charge for engineering time, not licences. If the appliance you already bought is the right call, we will make it work and say so. Real overhead we will happily delete: three directories down to one, manual certificate handling replaced by automatic rotation, tribal memory replaced by runbooks. Understanding is not overhead.</p>
+<p>We charge for engineering time, not licences. If the appliance you already bought fits the design, we will configure it and say so. Overhead we will delete: three directories reduced to one, manual certificate handling replaced by automatic rotation, tribal memory replaced by runbooks. Understanding is not overhead.</p>
 
 <h2>4. Contact</h2>
-<p>Send the constraint you're stuck on: the disconnected site, the assessor's finding, the fielded appliance that can't do mTLS. You'll get an engineer's answer. If your current stack is fine, we'll tell you that too.</p>
+<p>Send the constraint. Examples: a site that spends 12 hours a day disconnected, an assessor finding on the CUI boundary, a fielded appliance with a fixed TLS stack. You get an engineer's answer. If the current stack works, we say so.</p>
 <p><a href="mailto:ethan.vu@zerosecsolutions.com">ethan.vu@zerosecsolutions.com</a></p>
 <p class="meta">Defense programs, DIB suppliers, and air-gapped, CUI or classified environments.</p>
 
