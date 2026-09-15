@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ZeroSec Solutions — Zero Trust: The Overhead You Cut Is the Understanding You Lose</title>
-<meta name="description" content="Zero trust architecture and engineering for OT/ICS, classified enclaves, DIB suppliers under CMMC, and disconnected sites — self-hosted, open source, operated by your own team.">
+<title>Ethan Vu · Zero Trust Architect</title>
+<meta name="description" content="Zero trust architecture and engineering for OT/ICS, classified enclaves, DIB suppliers under CMMC, and disconnected sites. Self-hosted, open source, operated by your own team.">
 <style>
   :root {
     --bg: #1c1c1c;
@@ -27,83 +27,35 @@
   main { max-width: 760px; margin: 0 auto; }
   h1 { font-size: 26px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; }
   h2 { font-size: 18px; font-weight: 600; margin: 32px 0 10px; }
-  h3 { font-size: 15px; font-weight: 600; margin: 18px 0 4px; }
   p { margin: 0 0 14px; color: var(--body); }
   ul, ol { margin: 0 0 14px; padding-left: 20px; color: var(--body); }
   li { margin-bottom: 8px; }
   li b, p b { font-weight: 600; color: var(--text); }
-  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; color: var(--text); }
   a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
   a:visited { color: #9f8fd0; }
   a:hover { color: #a8c8ef; }
   a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
   ::selection { background: rgba(122,169,224,0.28); }
   .meta { font-size: 14px; color: var(--dim); }
-  .date { font-size: 13.5px; color: var(--faint); margin-bottom: 20px; }
   .foot { margin-top: 36px; font-size: 13px; color: var(--faint); }
-  pre {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 12px;
-    line-height: 1.45;
-    color: var(--body);
-    margin: 0 0 14px;
-    overflow-x: auto;
-  }
-  .cap { font-size: 12.5px; color: var(--faint); margin: -6px 0 18px; }
 </style>
 </head>
 <body>
 <main>
 
-<p class="meta">ZeroSec Solutions &middot; <a href="https://zerosecsolutions.com">zerosecsolutions.com</a></p>
+<p class="meta">Ethan Vu · Zero Trust Architect · <a href="https://zerosecsolutions.com">zerosecsolutions.com</a></p>
 
-<h1>Zero Trust: The Overhead You Cut Is the Understanding You Lose</h1>
-<p class="date">14 Sep 2026</p>
+<h1>Zero trust architecture for constrained environments.</h1>
 
-<p>At every program, and at every layer of management, the same instinct shows up: reduce risk by moving the work somewhere else. Offload it to a vendor, a managed service, a support contract offshore. The billets go away, the training line goes away, and risk looks smaller on the slide.</p>
-<p>It does not work for zero trust. Zero trust is not a box you install. It is an authorization decision your systems make on every request, from the user's claims and the device's current state. Outsource that and the risk stays where it was. Only the understanding moved.</p>
-<p>The cost shows up in development, not in the invoice. Every change becomes a vendor request. A new service needs an authorization rule, so you file a ticket and wait. The engineer who writes the rule needs a clearance, and so does the engineer who reviews it, so the pool of people who can touch your policy is small on both sides and billed by the hour.</p>
-<p>Then the requirement goes through translation. Your team describes the data flow, the vendor implements what they heard, and the mismatch surfaces two sprints later as a denial nobody expected. Troubleshooting runs the same way: your engineer reproduces it, the vendor engineer cannot see your enclave, and the loop closes over screenshots and a shared call. Mean time to repair is now someone else's queue depth.</p>
-<p>Zoom out and the pattern is circular. The prime bills the program, subcontracts the zero trust scope, and the sub buys a licence from a vendor who bills for the integration hours to make it fit. Each hop adds margin and a coordination meeting, and none of them adds an engineer on your side who understands the policy. It has the same shape as the circular investment deals in AI right now, except the money is appropriated, and the deliverable is a capability the program still cannot operate alone.</p>
-<p>Timing matters here. Castle-and-moat worked while there was a perimeter to defend; Google gave that up and wrote BeyondCorp, and zero trust came out of it. The next change is already running. Agents scan, enumerate, and chain exploits with no human driving, so the traffic hitting your edge arrives at machine speed. Defending that is a millisecond decision, made on current device state, next to the resource. A decision that needs a ticket, a cleared engineer on their side, and a change window is not a decision. It is a delay.</p>
+<p>Zero trust is an authorization decision your systems make on every request, from the user's claims and the device's current state. It is not a product. Outsource it and the risk stays where it was. Only the understanding moved.</p>
 
-<p><b>Who this is for.</b> Four kinds of estate: OT and ICS networks where controllers cannot reach a cloud policy engine; classified and program enclaves, including ITAR-scoped engineering environments; small DIB suppliers facing CMMC Level 2 with 20 to 200 seats and no budget for an enterprise suite; and tactical or DIL sites that lose the link by design. Three of those four have internet. The constraint is not connectivity. It is who is permitted to make the decision and who is permitted to see it.</p>
-<p>If your estate is laptops and SaaS and your data is unregulated, buy the subscription. It is the right answer and it is cheaper than we are.</p>
+<p>OT floors, classified enclaves, disconnected sites, small DIB shops. These environments cannot reach a cloud policy engine, cannot permit a third party in the decision path, and cannot tolerate auth that fails when the uplink drops. No commercial zero trust product handles that. The constraint is architectural.</p>
 
-<p><b>TL;DR.</b></p>
-<ul>
-  <li>Outsourcing zero trust cuts headcount, not overhead. The expertise leaves with the billets.</li>
-  <li>Real overhead is manual work: three directories to maintain, certificates rotated by hand, procedure held in one person's memory. Automate that.</li>
-  <li>An operator who can read the policy and restore the control plane is not overhead. That operator is the control.</li>
-  <li>Three documents prove you still own the decision: the written trust algorithm, a replayable decision record, and a control mapping. Ask your vendor for all three.</li>
-  <li>The offline test is one sequence: unplug the uplink, authenticate, call a service. Most deployments fail it.</li>
-  <li>We assess the decision path, redesign what is missing, build it with your engineers on open source, and hand over the runbooks and the skill.</li>
-</ul>
+<p>I design and build zero trust architectures for these environments. Open standards, deployed on your hardware, policy in plaintext your engineers can read and restore. The engagement ends when your team can trace a denied request to the policy rule that rejected it, explain why, and restore the control plane from runbooks alone.</p>
 
-<h2>1. What we do</h2>
-<p>We design, build, and hand over zero trust architectures that your own engineers run. SP 800-207 is the reference, and we map to the DoD pillars because that is how program offices ask. The stack is open source and self-hosted: Keycloak, FreeIPA, osquery, FleetDM, SPIRE, WireGuard, Envoy, OPA, Vault, ClickHouse.</p>
-<ul>
-  <li><b>Assess.</b> Fixed price, two to three weeks. Ownership, evidence, and continuity checked per pillar, down to individual denied requests. Output: findings ranked by risk, with no product attached to the recommendation.</li>
-  <li><b>Design.</b> Control plane separated from data plane, enforcement placed in front of every resource, the trust algorithm written down. Output: target design and migration path.</li>
-  <li><b>Build.</b> Deployed with your engineers, air-gapped first and relaxed only if your environment allows. Output: repos, configs, runbooks, STIG baselines, and CMMC Level 2 / DFARS 252.204-7012 evidence pulled from real decision records.</li>
-  <li><b>Hand over.</b> Pairing and tabletops until your operators can explain any rule and restore the control plane unassisted.</li>
-</ul>
-
-<h2>2. Why bring us in</h2>
-<ul>
-  <li><b>No licences, no reseller margin.</b> We bill engineering hours. If the product you already own fits the design, we configure it and say so.</li>
-  <li><b>We work inside your boundary.</b> Every component runs on your hardware, under your keys, with no phone-home telemetry and no third party terminating your TLS.</li>
-  <li><b>Open standards only.</b> OIDC, X.509, SPIFFE, WireGuard, Rego. Replacement cost stays at the component level, including replacing us.</li>
-  <li><b>Built to be assessed.</b> Policy is text under version control, and every decision leaves a record you can replay months later without calling anyone.</li>
-  <li><b>Engineer to engineer.</b> Your team gets a design conversation, not a sales cycle. If your current architecture holds, that is the finding we deliver.</li>
-</ul>
-<p>Understanding is not overhead. Cut it and you lose the expertise and the skill with it.</p>
-
-<h2>3. Contact</h2>
-<p>ZeroSec Solutions works with defense programs, DIB suppliers, OT and ICS operators, and classified, CUI or disconnected enclaves. Start with an assessment.</p>
 <p><a href="mailto:ethan.vu@zerosecsolutions.com">ethan.vu@zerosecsolutions.com</a></p>
 
-<p class="foot">ZeroSec Solutions, 14 Sep 2026</p>
+<p class="foot">Ethan Vu · ZeroSec Solutions</p>
 
 </main>
 </body>
