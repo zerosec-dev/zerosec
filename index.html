@@ -65,6 +65,7 @@
 <p>The cost shows up in development, not in the invoice. Every change becomes a vendor request. A new service needs an authorization rule, so you file a ticket and wait. The engineer who writes the rule needs a clearance, and so does the engineer who reviews it, so the pool of people who can touch your policy is small on both sides and billed by the hour.</p>
 <p>Then the requirement goes through translation. Your team describes the data flow, the vendor implements what they heard, and the mismatch surfaces two sprints later as a denial nobody expected. Troubleshooting runs the same way: your engineer reproduces it, the vendor engineer cannot see your enclave, and the loop closes over screenshots and a shared call. Mean time to repair is now someone else's queue depth.</p>
 <p>Zoom out and the pattern is circular. The prime bills the program, subcontracts the zero trust scope, and the sub buys a licence from a vendor who bills for the integration hours to make it fit. Each hop adds margin and a coordination meeting, and none of them adds an engineer on your side who understands the policy. It has the same shape as the circular investment deals in AI right now, except the money is appropriated, and the deliverable is a capability the program still cannot operate alone.</p>
+<p>Timing matters here. Castle-and-moat worked while there was a perimeter to defend; Google gave that up and wrote BeyondCorp, and zero trust came out of it. The next change is already running. Agents scan, enumerate, and chain exploits with no human driving, so the traffic hitting your edge arrives at machine speed. Defending that is a millisecond decision, made on current device state, next to the resource. A decision that needs a ticket, a cleared engineer on their side, and a change window is not a decision. It is a delay.</p>
 
 <p><b>Who needs this.</b> Defense programs, DIB suppliers under DFARS 252.204-7012, and any enclave that runs air-gapped, disconnected, or at CUI and above. If your sites hold a reliable circuit and your data is unregulated, a SASE subscription is probably the cheaper answer and you can stop reading.</p>
 
@@ -78,108 +79,26 @@
   <li>We assess the decision path, redesign what is missing, build it with your engineers on open source, and hand over the runbooks and the skill.</li>
 </ul>
 
-<h2>1. Where the understanding went</h2>
-<p>Follow one request from a user's card to your data, and mark who owns each hop. The hops marked "vendor" are the ones your team stopped learning the day the product was bought.</p>
-<pre>  request path                          typical managed ZT    self-hosted
-  ------------------------------------  --------------------  --------------
-  user + CAC/PIV card                   you                   you
-    |
-    v
-  device posture agent                  vendor, closed        osquery+FleetDM
-    |
-    v
-  overlay / tunnel                      vendor PoP or box     WireGuard/Nebula
-    |
-    v
-  PEP  - permits or denies the call     vendor                Envoy, your conf
-    |
-    +--&gt; PDP - policy engine + trust
-    |         algorithm                 vendor, black box     OPA + Rego in git
-    |          ^
-    |          |
-    |         signals: identity,
-    |         posture, PKI, time        vendor                Keycloak, SPIRE,
-    |                                                         Vault, FreeIPA
-    v
-  resource - your data, your API        you                   you
-    |
-    v
-  decision record / evidence            vendor console        ClickHouse, yours
-</pre>
-<p class="cap">Fig 1. Ownership of the decision path. Every hop marked "vendor" is a hop you cannot inspect, replay, or run disconnected.</p>
-<p>Draw the boundary explicitly. The enforcement decision is either inside the enclave you are accredited to defend, or it is not. Everything else in the argument follows from that line.</p>
-
-<h2>2. Methodology</h2>
-<p>A tool list is not a method. For each of the seven DoD pillars we check three properties against the path in Fig 1, then drill down wherever one fails.</p>
+<h2>1. What we do</h2>
+<p>We design, build, and hand over zero trust architectures that your own engineers run. SP 800-207 is the reference, and we map to the DoD pillars because that is how program offices ask. The stack is open source and self-hosted: Keycloak, FreeIPA, osquery, FleetDM, SPIRE, WireGuard, Envoy, OPA, Vault, ClickHouse.</p>
 <ul>
-  <li><b>Ownership.</b> Can your staff change the rule without a vendor ticket?</li>
-  <li><b>Evidence.</b> Does a decision produce a record an assessor can read, months later, without vendor assistance?</li>
-  <li><b>Continuity.</b> Does the decision still happen with the WAN down, the console unreachable, and the licence server unreachable?</li>
-</ul>
-<p>Drill-down order is broad to narrow: estate boundary, then pillar, then one decision path, then one denied request. A finding is only real when it lands on a specific request.</p>
-
-<h2>3. Triage, in three layers</h2>
-<p>Layers are ordered by cost and invasiveness. Most findings surface in Layer 1.</p>
-
-<h3>Layer 1 — inventory and configuration</h3>
-<p>Cheap, read-only, no production impact. Token lifetimes, certificate TTLs, posture intervals, overlay ACLs, log retention. We are looking for standing access: a credential with no expiry, a flat segment, a group that grants a resource directly. Where a managed product sits in the path, this is also where we request the three documents: trust algorithm, one decision record, control mapping. A missing document is a Layer 1 finding on its own.</p>
-
-<h3>Layer 2 — the decision path</h3>
-<p>Trace one real request end to end and read the logs it produced. This is where the gap between the architecture diagram and the running system appears, usually as an enforcement point that was never placed in front of a legacy resource.</p>
-
-<h3>Layer 3 — adversarial and offline tests</h3>
-<p>Cut the uplink. Expire a posture feed. Revoke a card mid-session. Rotate the CA. These are scheduled tests in a maintenance window, not production experiments; each one answers a question the console cannot.</p>
-
-<h2>4. Reading the output</h2>
-<p>Findings cite commands and output, not impressions. Three examples from a self-hosted stack:</p>
-<pre># Replay a denied request against the exact bundle that produced it.
-$ opa eval --explain fails -b bundles/authz-1.14.2.tar.gz \
-      -i decisions/2026-09-03T0314Z.json 'data.envoy.authz.allow'
-false
-  posture.ts_ns stale by 1140s   # &lt;- the rule that denied it
-
-# Workload credentials actually issued, and their TTLs.
-$ spire-server entry show | grep -E 'spiffe_id|ttl'
-
-# Posture freshness across the fleet.
-:) SELECT quantile(0.99)(now() - ts) AS p99_stale_s FROM posture;
-p99_stale_s: 1140
-</pre>
-<p>Read the last one carefully. The posture interval is 300 s, so a p99 staleness of 1140 s means policy is deciding on facts nearly four intervals old. Normal is under 600 s. Above that, treat every allow as suspect: a non-reporting agent looks identical to a healthy one unless staleness is alarmed. That is the next section.</p>
-
-<h2>5. Gotchas</h2>
-<ul>
-  <li><b>A green console is not enforcement.</b> Dashboards report agent check-in, not whether a PEP sits in front of every resource. Enumerate resources, then find each one's enforcement point. The ones with none are the finding.</li>
-  <li><b>Posture agents fail open.</b> If a stale fact is not a failed fact, an attacker's move is to stop the agent. Alarm on staleness, not only on non-compliance.</li>
-  <li><b>Average latency hides the denial tail.</b> Users experience the outliers. Read p99 on the authorization path, and never sample the decision log.</li>
-  <li><b>Vendor telemetry is an egress channel you approved.</b> Hostnames, usernames, and destination graphs are often the sensitive part on a CUI program. "Metadata only" is not a control you can put in an SSP.</li>
-  <li><b>Long-lived credentials undo the design.</b> A one-year certificate on disk is standing access with extra steps. If a leaked overlay key reaches a resource, the architecture has collapsed back to a VPN.</li>
+  <li><b>Assess.</b> Ownership, evidence, and continuity checked per pillar, down to individual denied requests. Output: findings ranked by risk, with no product attached to the recommendation.</li>
+  <li><b>Design.</b> Control plane separated from data plane, enforcement placed in front of every resource, the trust algorithm written down. Output: target design and migration path.</li>
+  <li><b>Build.</b> Deployed with your engineers, air-gapped first and relaxed only if your environment allows. Output: repos, configs, runbooks, STIG baselines, and CMMC Level 2 / DFARS 252.204-7012 evidence pulled from real decision records.</li>
+  <li><b>Hand over.</b> Pairing and tabletops until your operators can explain any rule and restore the control plane unassisted.</li>
 </ul>
 
-<h2>6. Resolution and verification</h2>
-<p>The fix is usually structural: move the decision inside the boundary, place enforcement in front of every resource, and make policy a text file under version control. Components we deploy are open source and self-hosted — Keycloak and FreeIPA for user identity, osquery and FleetDM for posture, SPIRE for workload identity, WireGuard or Nebula for the overlay, Envoy as the PEP, OPA and Rego as the policy engine, Vault for PKI, Vector and ClickHouse for the record.</p>
-<p>Verification is a checklist, and it belongs in your runbook whether or not we run it:</p>
-<pre>[ ] Unplug the uplink. Authenticate a user. Call a service.
-[ ] Pick one denial from last week. Replay it offline. Name the rule.
-[ ] Expire a posture feed. Confirm policy denies instead of failing open.
-[ ] Rotate the workload CA. Confirm no service outage.
-[ ] Export 90 days of decision records without vendor assistance.
-[ ] Hand the trust algorithm to an engineer who did not write it.
-    Ask them to explain one rule.
-</pre>
-<p>Six passes means you own the decision path. Any failure names the next piece of work.</p>
-
-<h2>7. How we work</h2>
+<h2>2. Why bring us in</h2>
 <ul>
-  <li><b>Assessment.</b> The method above, applied to your estate. Output: findings ranked by risk, with no product attached to the recommendation.</li>
-  <li><b>Architecture.</b> Control plane separated from data plane, PDP and PEP placement, trust algorithm written down. Output: target design and migration path.</li>
-  <li><b>Implementation.</b> Built with your engineers, air-gapped first, relaxed later if the environment allows. Output: repos, configs, runbooks.</li>
-  <li><b>Accreditation support.</b> Controls mapped to components, decision records pulled from the log store. Output: STIG baselines and CMMC Level 2 / DFARS 252.204-7012 evidence.</li>
-  <li><b>Enablement.</b> Pairing and tabletops until your operators can explain the design and restore it unassisted. Output: a team that passes the checklist in section 6 without us in the room.</li>
+  <li><b>No licences, no reseller margin.</b> We bill engineering hours. If the product you already own fits the design, we configure it and say so.</li>
+  <li><b>We work inside your boundary.</b> Every component runs on your hardware, under your keys, with no phone-home telemetry and no third party terminating your TLS.</li>
+  <li><b>Open standards only.</b> OIDC, X.509, SPIFFE, WireGuard, Rego. Replacement cost stays at the component level, including replacing us.</li>
+  <li><b>Built to be assessed.</b> Policy is text under version control, and every decision leaves a record you can replay months later without calling anyone.</li>
+  <li><b>Engineer to engineer.</b> Your team gets a design conversation, not a sales cycle. If your current architecture holds, that is the finding we deliver.</li>
 </ul>
-<p>Real overhead is manual work, and we will happily delete it: three directories collapse to one, hand-rotated certificates become automatic rotation, undocumented procedure becomes a runbook. Understanding is not overhead. Cut it and you lose the expertise and the skill with it.</p>
+<p>Understanding is not overhead. Cut it and you lose the expertise and the skill with it.</p>
 
-<h2>8. Contact</h2>
+<h2>3. Contact</h2>
 <p>ZeroSec Solutions works with defense programs, DIB suppliers, and air-gapped, CUI or classified environments.</p>
 <p><a href="mailto:ethan.vu@zerosecsolutions.com">ethan.vu@zerosecsolutions.com</a></p>
 
