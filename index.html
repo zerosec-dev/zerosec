@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ZeroSec Solutions — Zero Trust: The Overhead You Cut Is the Understanding You Lose</title>
-<meta name="description" content="Zero trust architecture and engineering for defense programs, DIB suppliers, and air-gapped, CUI or classified environments.">
+<meta name="description" content="Zero trust architecture and engineering for OT/ICS, classified enclaves, DIB suppliers under CMMC, and disconnected sites — self-hosted, open source, operated by your own team.">
 <style>
   :root {
     --bg: #1c1c1c;
@@ -67,7 +67,8 @@
 <p>Zoom out and the pattern is circular. The prime bills the program, subcontracts the zero trust scope, and the sub buys a licence from a vendor who bills for the integration hours to make it fit. Each hop adds margin and a coordination meeting, and none of them adds an engineer on your side who understands the policy. It has the same shape as the circular investment deals in AI right now, except the money is appropriated, and the deliverable is a capability the program still cannot operate alone.</p>
 <p>Timing matters here. Castle-and-moat worked while there was a perimeter to defend; Google gave that up and wrote BeyondCorp, and zero trust came out of it. The next change is already running. Agents scan, enumerate, and chain exploits with no human driving, so the traffic hitting your edge arrives at machine speed. Defending that is a millisecond decision, made on current device state, next to the resource. A decision that needs a ticket, a cleared engineer on their side, and a change window is not a decision. It is a delay.</p>
 
-<p><b>Who needs this.</b> Defense programs, DIB suppliers under DFARS 252.204-7012, and any enclave that runs air-gapped, disconnected, or at CUI and above. If your sites hold a reliable circuit and your data is unregulated, a SASE subscription is probably the cheaper answer and you can stop reading.</p>
+<p><b>Who this is for.</b> Four kinds of estate: OT and ICS networks where controllers cannot reach a cloud policy engine; classified and program enclaves, including ITAR-scoped engineering environments; small DIB suppliers facing CMMC Level 2 with 20 to 200 seats and no budget for an enterprise suite; and tactical or DIL sites that lose the link by design. Three of those four have internet. The constraint is not connectivity. It is who is permitted to make the decision and who is permitted to see it.</p>
+<p>If your estate is laptops and SaaS and your data is unregulated, buy the subscription. It is the right answer and it is cheaper than we are.</p>
 
 <p><b>TL;DR.</b></p>
 <ul>
@@ -82,7 +83,7 @@
 <h2>1. What we do</h2>
 <p>We design, build, and hand over zero trust architectures that your own engineers run. SP 800-207 is the reference, and we map to the DoD pillars because that is how program offices ask. The stack is open source and self-hosted: Keycloak, FreeIPA, osquery, FleetDM, SPIRE, WireGuard, Envoy, OPA, Vault, ClickHouse.</p>
 <ul>
-  <li><b>Assess.</b> Ownership, evidence, and continuity checked per pillar, down to individual denied requests. Output: findings ranked by risk, with no product attached to the recommendation.</li>
+  <li><b>Assess.</b> Fixed price, two to three weeks. Ownership, evidence, and continuity checked per pillar, down to individual denied requests. Output: findings ranked by risk, with no product attached to the recommendation.</li>
   <li><b>Design.</b> Control plane separated from data plane, enforcement placed in front of every resource, the trust algorithm written down. Output: target design and migration path.</li>
   <li><b>Build.</b> Deployed with your engineers, air-gapped first and relaxed only if your environment allows. Output: repos, configs, runbooks, STIG baselines, and CMMC Level 2 / DFARS 252.204-7012 evidence pulled from real decision records.</li>
   <li><b>Hand over.</b> Pairing and tabletops until your operators can explain any rule and restore the control plane unassisted.</li>
@@ -99,7 +100,7 @@
 <p>Understanding is not overhead. Cut it and you lose the expertise and the skill with it.</p>
 
 <h2>3. Contact</h2>
-<p>ZeroSec Solutions works with defense programs, DIB suppliers, and air-gapped, CUI or classified environments.</p>
+<p>ZeroSec Solutions works with defense programs, DIB suppliers, OT and ICS operators, and classified, CUI or disconnected enclaves. Start with an assessment.</p>
 <p><a href="mailto:ethan.vu@zerosecsolutions.com">ethan.vu@zerosecsolutions.com</a></p>
 
 <p class="foot">ZeroSec Solutions, 14 Sep 2026</p>
