@@ -3,60 +3,82 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ethan Vu · Zero Trust Architect</title>
-<meta name="description" content="Zero trust architecture and engineering for OT/ICS, classified enclaves, DIB suppliers under CMMC, and disconnected sites. Self-hosted, open source, operated by your own team.">
+<title>ZeroSec Solutions</title>
+<meta name="description" content="Zero trust architecture and engineering, self-hosted and run by your own team.">
 <style>
-  :root {
-    --bg: #1c1c1c;
-    --text: #e0e0e0;
-    --body: #cccccc;
-    --dim: #a6a6a6;
-    --faint: #8a8a8a;
-    --link: #7aa9e0;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-    font-size: 15px;
-    line-height: 1.6;
-    padding: 36px 20px 64px;
-  }
-  main { max-width: 760px; margin: 0 auto; }
-  h1 { font-size: 26px; font-weight: 600; line-height: 1.2; margin: 0 0 6px; }
-  h2 { font-size: 18px; font-weight: 600; margin: 32px 0 10px; }
-  p { margin: 0 0 14px; color: var(--body); }
-  ul, ol { margin: 0 0 14px; padding-left: 20px; color: var(--body); }
-  li { margin-bottom: 8px; }
-  li b, p b { font-weight: 600; color: var(--text); }
-  a { color: var(--link); text-decoration: underline; text-underline-offset: 2px; }
-  a:visited { color: #9f8fd0; }
-  a:hover { color: #a8c8ef; }
-  a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
-  ::selection { background: rgba(122,169,224,0.28); }
-  .meta { font-size: 14px; color: var(--dim); }
-  .foot { margin-top: 36px; font-size: 13px; color: var(--faint); }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #1c1c1c; font: 400 16px/1.6 Consolas, "Liberation Mono", "DejaVu Sans Mono", Menlo, monospace; color: #f0f0f0; -webkit-font-smoothing: antialiased; }
+  header { border-top: 5px solid #424242; border-bottom: 1px solid #333333; }
+  .bar { max-width: 800px; margin: 0 auto; padding: 14px 30px; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .brand { font-size: 22px; font-weight: 400; color: #b5e853; text-decoration: none; }
+  nav { display: flex; gap: 20px; }
+  nav a { color: #f0f0f0; text-decoration: none; }
+  nav a:hover { color: #a8c8ef; }
+  main { max-width: 800px; margin: 0 auto; padding: 30px 30px 60px; }
+  h1, h2, h3, h4 { font-weight: 400; color: #b5e853; }
+  h1 { font-size: 28px; margin: 0 0 12px; }
+  h2 { font-size: 24px; margin: 40px 0 14px; }
+  h3 { font-size: 20px; margin: 28px 0 8px; }
+  h4 { font-size: 16px; margin: 0 0 10px; color: #a6a6a6; }
+  p, ul, pre { margin: 0 0 15px; }
+  ul { padding-left: 30px; }
+  li { margin-bottom: 4px; }
+  b, strong { font-weight: 700; color: #ffffff; }
+  a { color: #63c0f5; text-decoration: underline; text-underline-offset: 2px; }
+  a:hover { color: #9fd8fa; }
+  code, pre { font-family: inherit; font-size: 15px; color: #e0e0e0; background: #252525; border: 1px solid #3a3a3a; border-radius: 3px; }
+  code { padding: 1px 5px; }
+  pre { padding: 8px 12px; overflow-x: auto; }
+  footer { border-top: 1px solid #333333; }
+  footer p { max-width: 800px; margin: 0 auto; padding: 24px 30px; font-size: 14px; color: #8a8a8a; }
 </style>
 </head>
 <body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="#">ZeroSec Solutions</a>
+    <nav><a href="#services">Services</a><a href="#team">Team</a><a href="#contact">Contact</a></nav>
+  </div>
+</header>
+
 <main>
 
-<p class="meta">Ethan Vu · Zero Trust Architect · <a href="https://zerosecsolutions.com">zerosecsolutions.com</a></p>
+<p>ZeroSec Solutions provides zero trust consulting and engineering.</p>
 
-<h1>Zero trust architecture for constrained environments.</h1>
+<h2 id="services">Services</h2>
+<p>ZeroSec Solutions offers the following services:</p>
+<ul>
+  <li>Zero trust assessments (fixed price, usually two to three weeks)</li>
+  <li>Architecture and design, mapped to NIST SP 800-207 and the DoD zero trust pillars</li>
+  <li>Implementation alongside your engineers, including CMMC evidence</li>
+  <li>Handover and training for your operations team</li>
+</ul>
+<p><b><a href="#contact">Contact us</a> to obtain a quote for any of these services.</b></p>
 
-<p>Zero trust is based on an authorization decision your systems make on every request, from the user's claims and the device's current state. It is not a product. </p>
+<h3>Beyond SaaS</h3>
+<p>Most SaaS zero trust products check a user once at login and then trust the session for hours. We build the pieces they usually leave out. Sessions are revoked when a device's risk changes. Data and keys stay on your hardware, and connectors only dial out. Service accounts move off static API keys onto short-lived credentials. SaaS audit events land in your SIEM next to your host and network logs.</p>
 
-<p>OT floors, classified enclaves, disconnected sites, small DIB shops. These environments cannot reach a cloud policy engine, cannot permit a third party in the decision path, and cannot tolerate auth that fails when the uplink drops. No commercial zero trust product handles that. The constraint is architectural.</p>
+<h3>Who we work with</h3>
+<p>We mostly work with OT and ICS operators, defense suppliers preparing for CMMC Level 2, and organizations running classified, ITAR, or disconnected networks. If your company runs on laptops and SaaS and your data isn't regulated, a subscription product will probably serve you better.</p>
+<p>We subcontract and team with primes on zero trust, CMMC, and security monitoring work. Cleared personnel available.</p>
 
-<p>I design and build zero trust architectures for these environments. </p>
+<h2 id="team">Team</h2>
+<h3>Ethan Vu</h3>
+<h4>Founder, Zero Trust Engineer</h4>
+<p>Ethan is a security engineer with seven years of experience in defense. He works mainly on security monitoring, detection, and automated response.</p>
+<p>He has designed and run production Elastic security platforms in disconnected environments, built risk-based automated response with Ansible for a large enterprise, and taken systems through STIG compliance and authorization. He also works on identity, including Active Directory tiering, SAML and OIDC federation, and PKI.</p>
+<p>Ethan holds a B.S. in Cybersecurity and Information Assurance from Western Governors University and is completing an M.S. in Information Security Engineering at the SANS Technology Institute. His certifications include GIAC GSEC and GCIH, CompTIA CASP+ and PenTest+, and (ISC)&sup2; SSCP.</p>
+<p>Contact: <code>ethan.vu@</code></p>
 
-<p><a href="mailto:ethan.vu@zerosecsolutions.com">ethan.vu@zerosecsolutions.com</a></p>
-
-<p class="foot">Ethan Vu · ZeroSec Solutions</p>
+<h2 id="contact">Contact</h2>
+<h3>Email</h3>
+<p>ZeroSec Solutions can be contacted via email at:</p>
+<pre>ethan.vu[at]zerosecsolutions[dot]com</pre>
 
 </main>
+
+<footer><p>&copy; 2026 ZeroSec Solutions</p></footer>
+
 </body>
 </html>
